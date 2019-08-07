@@ -1,7 +1,11 @@
 extern crate clap;
+#[macro_use]
+extern crate log;
 extern crate reqwest;
+extern crate simplelog;
 
 use clap::{App, Arg};
+use simplelog::*;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Result};
 use std::path::Path;
@@ -36,27 +40,39 @@ fn main() {
     // Check if the URLFILE exists if not exit with error message.
     let urlfile = matches.value_of("URLFILE").unwrap();
     let verbosity = matches.occurrences_of("v");
+    create_logger(verbosity);
     if !Path::new(urlfile).exists() {
-        println!("'{}' does not exist!", urlfile);
+        error!("URLFile: '{}' does not exist!", urlfile);
         process::exit(1)
     }
-    log_verbose("Verbose test", verbosity);
-    log_debug("Debug test", verbosity);
-    log_info("Should always display", verbosity);
-}
-
-fn log_info(msg: &str, level: u64) {
-    println!("[INFO] {}", msg);
-}
-
-fn log_debug(msg: &str, level: u64) {
-    if level > 0 {
-        println!("[DEBUG] {}", msg);
+    let file = File::open(urlfile).unwrap();
+    let outfile = matches.value_of("output").unwrap_or("");
+    for line in BufReader::new(file).lines() {
+        // Test the url to see if it is valid and if so print to the screen/output file.
+        let url = line.unwrap();
+        trace!("Testing URL: {}", url);
+        let mut resp = reqwest::get(&url).unwrap();
+        if resp.status().is_success() {
+            println!("{}", url);
+        }
     }
 }
 
-fn log_verbose(msg: &str, level: u64) {
-    if level > 1 {
-        println!("[VERBOSE] {}", msg);
+fn create_logger(level: u64) {
+    let mut log_level = LevelFilter::Info;
+    if level > 2 {
+        // Set logger to trace
+        log_level = LevelFilter::Trace;
+    } else if level > 1 {
+        // Set logger to debug
+        log_level = LevelFilter::Debug;
     }
+    // Set logger to info by default.
+    CombinedLogger::init(vec![TermLogger::new(
+        log_level,
+        Config::default(),
+        TerminalMode::Mixed,
+    )
+    .unwrap()])
+    .unwrap()
 }
