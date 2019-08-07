@@ -1,0 +1,15 @@
+[package]
+name = "misc_tools"
+version = "0.1.0"
+authors = ["ccsplit <cshay237@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+clap = "2.33.0"
+reqwest = "0.9.19"
+
+[[bin]]
+name = "check_urls"
+path = "src/check_urls.rs"
