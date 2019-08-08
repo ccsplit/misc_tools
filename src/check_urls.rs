@@ -65,7 +65,8 @@ fn main() {
     let file = File::open(urlfile).unwrap();
     // let outfile = matches.value_of("output").unwrap_or("");
     let lines = BufReader::new(file).lines();
-    let pool = ThreadPool::with_name("check_url worker".to_owned(), 10);
+    let num_workers = clap::value_t!(matches.value_of("threads"), usize).unwrap_or(10);
+    let pool = ThreadPool::with_name("check_url worker".to_owned(), num_workers);
     for line in lines {
         // Test the url to see if it is valid and if so print to the screen/output file.
         let url = line.unwrap();
