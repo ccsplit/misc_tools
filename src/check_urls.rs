@@ -11,10 +11,12 @@ use reqwest::Client;
 
 use simplelog::*;
 
+use std::error::Error;
 use std::fs::File;
-use std::io::{BufRead, BufReader, Result};
+use std::io::{BufRead, BufReader, Result, Write};
 use std::path::Path;
 use std::process;
+use std::sync::mpsc::channel;
 
 use threadpool::ThreadPool;
 
@@ -63,24 +65,45 @@ fn main() {
         process::exit(1)
     }
     let file = File::open(urlfile).unwrap();
-    // let outfile = matches.value_of("output").unwrap_or("");
+    let write_file = matches.is_present("output");
     let lines = BufReader::new(file).lines();
     let num_workers = clap::value_t!(matches.value_of("threads"), usize).unwrap_or(10);
+
+    let (tx, rx) = channel();
     let pool = ThreadPool::with_name("check_url worker".to_owned(), num_workers);
     for line in lines {
         // Test the url to see if it is valid and if so print to the screen/output file.
         let url = line.unwrap();
         trace!("Testing URL: {}", url);
         let verify_tls = matches.is_present("verify-tls");
+        let tx = tx.clone();
         pool.execute(move || {
             if check_url(&url, verify_tls).unwrap() {
                 println!("{}", url);
+                if write_file {
+                    tx.send(url)
+                        .expect("channel will be there waiting for the pool.");
+                }
             } else {
                 trace!("Failed to resolve URL: {}", url);
             }
         });
     }
     pool.join();
+    drop(tx);
+    if write_file {
+        let outfile = Path::new(matches.value_of("output").unwrap());
+        let display = outfile.display();
+
+        let mut file = match File::create(&outfile) {
+            Err(why) => panic!("Unable to create {}: {}", display, why.description()),
+            Ok(file) => file,
+        };
+        println!("Writing the results to: {}", display);
+        for valid in rx {
+            file.write_fmt(format_args!("{}\n", valid));
+        }
+    }
 }
 
 fn check_url(url: &str, verify: bool) -> Result<bool> {
