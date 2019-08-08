@@ -11,6 +11,7 @@ clap = "2.33.0"
 log = "0.4"
 reqwest = "0.9.19"
 simplelog = "0.6.0"
+threadpool = "1.7.1"
 
 [[bin]]
 name = "check_urls"

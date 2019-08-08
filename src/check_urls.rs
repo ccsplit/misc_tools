@@ -3,14 +3,20 @@ extern crate clap;
 extern crate log;
 extern crate reqwest;
 extern crate simplelog;
+extern crate threadpool;
 
 use clap::{App, Arg};
+
 use reqwest::Client;
+
 use simplelog::*;
+
 use std::fs::File;
 use std::io::{BufRead, BufReader, Result};
 use std::path::Path;
 use std::process;
+
+use threadpool::ThreadPool;
 
 fn main() {
     let matches = App::new("Check Urls")
@@ -38,6 +44,15 @@ fn main() {
                 .multiple(true)
                 .help("Sets the level of verbosity"),
         )
+        .arg(
+            Arg::with_name("threads")
+                .short("t")
+                .long("threads")
+                .value_name("THREADS")
+                .help("The number of threads to use when checking the URLs.")
+                .takes_value(true)
+                .default_value("10"),
+        )
         .get_matches();
     // Check if the URLFILE exists if not exit with error message.
     let urlfile = matches.value_of("URLFILE").unwrap();
@@ -48,18 +63,26 @@ fn main() {
         process::exit(1)
     }
     let file = File::open(urlfile).unwrap();
-    let outfile = matches.value_of("output").unwrap_or("");
-    for line in BufReader::new(file).lines() {
+    // let outfile = matches.value_of("output").unwrap_or("");
+    let lines = BufReader::new(file).lines();
+    let pool = ThreadPool::with_name("check_url worker".to_owned(), 10);
+    for line in lines {
         // Test the url to see if it is valid and if so print to the screen/output file.
         let url = line.unwrap();
         trace!("Testing URL: {}", url);
-        if check_url(url, matches.is_present("verify-tls")) {
-            println!("{}", url);
-        }
+        let verify_tls = matches.is_present("verify-tls");
+        pool.execute(move || {
+            if check_url(&url, verify_tls).unwrap() {
+                println!("{}", url);
+            } else {
+                trace!("Failed to resolve URL: {}", url);
+            }
+        });
     }
+    pool.join();
 }
 
-fn check_url(url: &str, verify: bool) {
+fn check_url(url: &str, verify: bool) -> Result<bool> {
     let mut client = Client::builder().build().unwrap();
 
     if !verify {
@@ -68,14 +91,15 @@ fn check_url(url: &str, verify: bool) {
             .build()
             .unwrap();
     }
-    let mut resp = client.get(&url).send().unwrap();
-    let resp = match resp {
-        Ok(response) => return response.status().is_success(),
+    let resp = client.get(url).send();
+    let r = match resp {
+        Ok(r) => r,
         Err(error) => {
             trace!("Failed to get URL: '{}', error:\n{}", url, error);
-            return false;
+            return Ok(false);
         }
     };
+    return Ok(r.status().is_success());
 }
 
 fn create_logger(level: u64) {
