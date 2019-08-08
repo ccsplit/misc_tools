@@ -53,19 +53,29 @@ fn main() {
         // Test the url to see if it is valid and if so print to the screen/output file.
         let url = line.unwrap();
         trace!("Testing URL: {}", url);
-        let mut client = Client::builder().build().unwrap();
-
-        if !matches.is_present("verify-tls") {
-            client = Client::builder()
-                .danger_accept_invalid_certs(true)
-                .build()
-                .unwrap();
-        }
-        let mut resp = client.get(&url).send().unwrap();
-        if resp.status().is_success() {
+        if check_url(url, matches.is_present("verify-tls")) {
             println!("{}", url);
         }
     }
+}
+
+fn check_url(url: &str, verify: bool) {
+    let mut client = Client::builder().build().unwrap();
+
+    if !verify {
+        client = Client::builder()
+            .danger_accept_invalid_certs(true)
+            .build()
+            .unwrap();
+    }
+    let mut resp = client.get(&url).send().unwrap();
+    let resp = match resp {
+        Ok(response) => return response.status().is_success(),
+        Err(error) => {
+            trace!("Failed to get URL: '{}', error:\n{}", url, error);
+            return false;
+        }
+    };
 }
 
 fn create_logger(level: u64) {
