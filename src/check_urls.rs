@@ -5,6 +5,7 @@ extern crate reqwest;
 extern crate simplelog;
 
 use clap::{App, Arg};
+use reqwest::Client;
 use simplelog::*;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Result};
@@ -30,6 +31,7 @@ fn main() {
                 .help("Place the valid URLs within the given filename.")
                 .takes_value(true),
         )
+        .arg(Arg::with_name("verify-tls").help("If set will verify the TLS connection."))
         .arg(
             Arg::with_name("v")
                 .short("v")
@@ -51,7 +53,15 @@ fn main() {
         // Test the url to see if it is valid and if so print to the screen/output file.
         let url = line.unwrap();
         trace!("Testing URL: {}", url);
-        let mut resp = reqwest::get(&url).unwrap();
+        let mut client = Client::builder().build().unwrap();
+
+        if !matches.is_present("verify-tls") {
+            client = Client::builder()
+                .danger_accept_invalid_certs(true)
+                .build()
+                .unwrap();
+        }
+        let mut resp = client.get(&url).send().unwrap();
         if resp.status().is_success() {
             println!("{}", url);
         }
