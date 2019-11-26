@@ -9,10 +9,16 @@ edition = "2018"
 [dependencies]
 clap = "2.33.0"
 log = "0.4"
+netaddr2 = "0.6.1"
 reqwest = "0.9.19"
 simplelog = "0.6.0"
 threadpool = "1.7.1"
+trust-dns-resolver="0.12.0"
 
 [[bin]]
 name = "check_urls"
 path = "src/check_urls.rs"
+
+[[bin]]
+name = "ip_hostname"
+path = "src/ip_hostname.rs"
