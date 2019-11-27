@@ -122,13 +122,13 @@ fn main() {
             if let Some(_) = ips[0].find(':') {
                 // IPv6
                 ip_range = IpAddrRange::from(Ipv6AddrRange::new(
-                    ips[0].parse().unwrap(),
-                    ips[1].parse().unwrap(),
+                    ips[0].trim().parse().unwrap(),
+                    ips[1].trim().parse().unwrap(),
                 ));
             } else {
                 ip_range = IpAddrRange::from(Ipv4AddrRange::new(
-                    ips[0].parse().unwrap(),
-                    ips[1].parse().unwrap(),
+                    ips[0].trim().parse().unwrap(),
+                    ips[1].trim().parse().unwrap(),
                 ));
             }
             for ip in ip_range {
