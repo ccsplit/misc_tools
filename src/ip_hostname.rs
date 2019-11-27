@@ -1,19 +1,8 @@
-//
-// ip_hostname.rs
-// Copyright (C) 2019 ccsplit <cshay237@gmail.com>
-// Distributed under terms of the MIT license.
-//
-extern crate clap;
-extern crate dns_lookup;
-#[macro_use]
-extern crate log;
-extern crate ipnet;
-extern crate simplelog;
-extern crate threadpool;
-
 use clap::{App, Arg};
 
 use dns_lookup::lookup_addr;
+
+use log::{error, info, trace};
 
 use ipnet::{IpAddrRange, IpNet, Ipv4AddrRange, Ipv6AddrRange};
 
@@ -21,7 +10,7 @@ use simplelog::*;
 
 use std::error::Error;
 use std::fs::File;
-use std::io::{BufRead, BufReader, Result, Write};
+use std::io::{BufRead, BufReader, Write};
 use std::net::IpAddr;
 use std::path::Path;
 use std::process;
@@ -110,7 +99,8 @@ fn main() {
                         let msg = format!("{} => {}", ip, i);
                         info!("{}", msg);
                         if write_file {
-                            tx.send(msg);
+                            tx.send(msg)
+                                .expect("channel will be there waiting for the pool.");
                         }
                     }
                 });
@@ -139,7 +129,8 @@ fn main() {
                         let msg = format!("{} => {}", ip, i);
                         info!("{}", msg);
                         if write_file {
-                            tx.send(msg);
+                            tx.send(msg)
+                                .expect("channel will be there waiting for the pool.");
                         }
                     }
                 });
@@ -153,7 +144,8 @@ fn main() {
                     let msg = format!("{} => {}", ip, i);
                     info!("{}", msg);
                     if write_file {
-                        tx.send(msg);
+                        tx.send(msg)
+                            .expect("channel will be there waiting for the pool.");
                     }
                 }
             });
@@ -171,7 +163,7 @@ fn main() {
         };
         println!("Writing the results to: {}", display);
         for valid in rx {
-            file.write_fmt(format_args!("{}\n", valid));
+            write!(&mut file, "{}\n", valid);
         }
     }
 }

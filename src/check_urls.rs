@@ -1,11 +1,6 @@
-extern crate clap;
-#[macro_use]
-extern crate log;
-extern crate reqwest;
-extern crate simplelog;
-extern crate threadpool;
-
 use clap::{App, Arg};
+
+use log::{error, trace};
 
 use reqwest::Client;
 
@@ -101,7 +96,7 @@ fn main() {
         };
         println!("Writing the results to: {}", display);
         for valid in rx {
-            file.write_fmt(format_args!("{}\n", valid));
+            write!(&mut file, "{}\n", valid);
         }
     }
 }
