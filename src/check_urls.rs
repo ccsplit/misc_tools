@@ -102,14 +102,14 @@ fn main() {
 }
 
 fn check_url(url: &str, verify: bool) -> Result<bool> {
-    let mut client = Client::builder().build().unwrap();
-
-    if !verify {
-        client = Client::builder()
+    let client = if !verify {
+        Client::builder()
             .danger_accept_invalid_certs(true)
             .build()
-            .unwrap();
-    }
+            .unwrap()
+    } else {
+        Client::builder().build().unwrap()
+    };
     let resp = client.get(url).send();
     let r = match resp {
         Ok(r) => r,

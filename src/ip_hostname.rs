@@ -108,19 +108,18 @@ fn main() {
         } else if ip_obj.find('-').is_some() {
             // Handle if the string is an IPRange.
             let ips: Vec<&str> = ip_obj.split('-').collect();
-            let ip_range: IpAddrRange;
-            if ips[0].find(':').is_some() {
+            let ip_range = if ips[0].find(':').is_some() {
                 // IPv6
-                ip_range = IpAddrRange::from(Ipv6AddrRange::new(
+                IpAddrRange::from(Ipv6AddrRange::new(
                     ips[0].trim().parse().unwrap(),
                     ips[1].trim().parse().unwrap(),
-                ));
+                ))
             } else {
-                ip_range = IpAddrRange::from(Ipv4AddrRange::new(
+                IpAddrRange::from(Ipv4AddrRange::new(
                     ips[0].trim().parse().unwrap(),
                     ips[1].trim().parse().unwrap(),
-                ));
-            }
+                ))
+            };
             for ip in ip_range {
                 let tx = tx.clone();
                 pool.execute(move || {
