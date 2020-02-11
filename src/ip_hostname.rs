@@ -87,7 +87,7 @@ fn main() {
         ips.push(String::from(ips_value));
     }
     for ip_obj in &ips {
-        if let Some(_) = ip_obj.find("/") {
+        if ip_obj.find('/').is_some() {
             // Handle if the string is a CIDR..
             let net = IpNet::from_str(ip_obj).unwrap();
             trace!("Parsed: '{:?}", net);
@@ -105,11 +105,11 @@ fn main() {
                     }
                 });
             }
-        } else if let Some(_) = ip_obj.find("-") {
+        } else if ip_obj.find('-').is_some() {
             // Handle if the string is an IPRange.
-            let ips: Vec<&str> = ip_obj.split("-").collect();
+            let ips: Vec<&str> = ip_obj.split('-').collect();
             let ip_range: IpAddrRange;
-            if let Some(_) = ips[0].find(':') {
+            if ips[0].find(':').is_some() {
                 // IPv6
                 ip_range = IpAddrRange::from(Ipv6AddrRange::new(
                     ips[0].trim().parse().unwrap(),
@@ -173,7 +173,7 @@ fn resolve_ip(ip: IpAddr) -> Option<String> {
     match lookup_addr(&ip) {
         Ok(r) => {
             trace!("Resolved ip address '{}' to '{}", ip, r);
-            if ip.to_string() == r.to_string() {
+            if ip.to_string() == r {
                 return None;
             }
             Some(r)
