@@ -176,13 +176,13 @@ fn resolve_ip(ip: IpAddr) -> Option<String> {
             if ip.to_string() == r.to_string() {
                 return None;
             }
-            return Some(r);
+            Some(r)
         }
         Err(err) => {
             trace!("Unable to resolve: '{:?}'. Error occurred:\n{}", ip, err);
-            return None;
+            None
         }
-    };
+    }
 }
 
 fn create_logger(level: u64) {

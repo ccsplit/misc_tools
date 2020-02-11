@@ -118,7 +118,7 @@ fn check_url(url: &str, verify: bool) -> Result<bool> {
             return Ok(false);
         }
     };
-    return Ok(r.status().is_success());
+    Ok(r.status().is_success())
 }
 
 fn create_logger(level: u64) {
