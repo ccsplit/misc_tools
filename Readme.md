@@ -1,6 +1,6 @@
 ### Miscellaneous Tools
 
-![Continuous integration](https://github.com/ccsplit/misc_tools/workflows/Continuous%20integration/badge.svg) ![Security Audit](https://github.com/ccsplit/misc_tools/workflows/.github/workflows/audit.yml/badge.svg)
+![Continuous integration](https://github.com/ccsplit/misc_tools/workflows/Continuous%20integration/badge.svg) ![Security audit](https://github.com/ccsplit/misc_tools/workflows/Security%20audit/badge.svg)
 
 Mainly these tools are here to learn the syntax and working with [rust](https://doc.rust-lang.org/cargo/index.html).
 Therefore, over time more and more tools may end up getting here. Currently working on just some simple one-off scripts
