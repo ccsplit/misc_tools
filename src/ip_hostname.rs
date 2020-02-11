@@ -51,7 +51,7 @@ fn main() {
                 .short("t")
                 .long("threads")
                 .value_name("THREADS")
-                .help("The number of threads to use when checking the URLs.")
+                .help("The number of threads to use when getting hostnames for the IPs.")
                 .takes_value(true)
                 .default_value("10"),
         )
@@ -71,7 +71,7 @@ fn main() {
     let ips_value = matches.value_of("IPS").unwrap();
     let num_workers = clap::value_t!(matches.value_of("threads"), usize).unwrap_or(10);
     let is_file = matches.is_present("file");
-    let pool = ThreadPool::with_name("check_url worker".to_owned(), num_workers);
+    let pool = ThreadPool::with_name("IP => Hostname worker".to_owned(), num_workers);
     let (tx, rx) = channel();
     if is_file {
         if !Path::new(ips_value).exists() {
