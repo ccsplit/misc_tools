@@ -96,7 +96,7 @@ fn main() {
         };
         println!("Writing the results to: {}", display);
         for valid in rx {
-            let _ = write!(&mut file, "{}\n", valid);
+            let _ = write!(&mut file, "{}\r\n", valid);
         }
     }
 }

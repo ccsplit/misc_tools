@@ -163,7 +163,7 @@ fn main() {
         };
         println!("Writing the results to: {}", display);
         for valid in rx {
-            let _ = write!(&mut file, "{}\n", valid);
+            let _ = write!(&mut file, "{}\r\n", valid);
         }
     }
 }
@@ -173,7 +173,7 @@ fn resolve_ip(ip: IpAddr) -> Option<String> {
     match lookup_addr(&ip) {
         Ok(r) => {
             trace!("Resolved ip address '{}' to '{}", ip, r);
-            if format!("{}", ip) == format!("{}", r) {
+            if ip.to_string() == r.to_string() {
                 return None;
             }
             return Some(r);
