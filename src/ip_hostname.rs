@@ -8,7 +8,6 @@ use ipnet::{IpAddrRange, IpNet, Ipv4AddrRange, Ipv6AddrRange};
 
 use simplelog::*;
 
-use std::error::Error;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Write};
 use std::net::IpAddr;
@@ -157,7 +156,7 @@ fn main() {
         let display = outfile.display();
 
         let mut file = match File::create(&outfile) {
-            Err(why) => panic!("Unable to create {}: {}", display, why.description()),
+            Err(why) => panic!("Unable to create {}: {}", display, why),
             Ok(file) => file,
         };
         println!("Writing the results to: {}", display);

@@ -1,6 +1,4 @@
-use clap::{App, Arg, ArgMatches};
-
-use futures::executor::block_on;
+use clap::{App, Arg};
 
 use log::{error, trace};
 
@@ -8,7 +6,6 @@ use reqwest::Client;
 
 use simplelog::*;
 
-use std::error::Error;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Result, Write};
 use std::path::Path;
@@ -95,7 +92,7 @@ fn main() {
         let display = outfile.display();
 
         let mut file = match File::create(&outfile) {
-            Err(why) => panic!("Unable to create {}: {}", display, why.description()),
+            Err(why) => panic!("Unable to create {}: {}", display, why),
             Ok(file) => file,
         };
         println!("Writing the results to: {}", display);
