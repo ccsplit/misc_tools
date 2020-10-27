@@ -198,7 +198,6 @@ fn create_logger(level: u64) {
         log_level,
         Config::default(),
         TerminalMode::Mixed,
-    )
-    .unwrap()])
+    )])
     .unwrap()
 }

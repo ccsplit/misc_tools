@@ -1,4 +1,6 @@
-use clap::{App, Arg};
+use clap::{App, Arg, ArgMatches};
+
+use futures::executor::block_on;
 
 use log::{error, trace};
 
@@ -14,6 +16,7 @@ use std::process;
 use std::sync::mpsc::channel;
 
 use threadpool::ThreadPool;
+use tokio::runtime::Runtime;
 
 fn main() {
     let matches = App::new("Check Urls")
@@ -72,8 +75,9 @@ fn main() {
         trace!("Testing URL: {}", url);
         let verify_tls = matches.is_present("verify-tls");
         let tx = tx.clone();
+        let mut tokio_runtime = Runtime::new().expect("Failed to create Tokio runtime.");
         pool.execute(move || {
-            if check_url(&url, verify_tls).unwrap() {
+            if tokio_runtime.block_on(check_url(&url, verify_tls)).unwrap() {
                 println!("{}", url);
                 if write_file {
                     tx.send(url)
@@ -101,7 +105,7 @@ fn main() {
     }
 }
 
-fn check_url(url: &str, verify: bool) -> Result<bool> {
+async fn check_url(url: &str, verify: bool) -> Result<bool> {
     let client = if !verify {
         Client::builder()
             .danger_accept_invalid_certs(true)
@@ -110,7 +114,7 @@ fn check_url(url: &str, verify: bool) -> Result<bool> {
     } else {
         Client::builder().build().unwrap()
     };
-    let resp = client.get(url).send();
+    let resp = client.get(url).send().await;
     let r = match resp {
         Ok(r) => r,
         Err(error) => {
@@ -135,7 +139,6 @@ fn create_logger(level: u64) {
         log_level,
         Config::default(),
         TerminalMode::Mixed,
-    )
-    .unwrap()])
-    .unwrap()
+    )])
+    .unwrap();
 }
