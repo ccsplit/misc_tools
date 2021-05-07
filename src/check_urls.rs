@@ -2,7 +2,7 @@ use clap::{App, Arg};
 
 use log::{error, trace};
 
-use reqwest::Client;
+use reqwest::blocking::Client;
 
 use simplelog::*;
 
@@ -13,7 +13,6 @@ use std::process;
 use std::sync::mpsc::channel;
 
 use threadpool::ThreadPool;
-use tokio::runtime::Runtime;
 
 fn main() {
     let matches = App::new("Check Urls")
@@ -72,9 +71,8 @@ fn main() {
         trace!("Testing URL: {}", url);
         let verify_tls = matches.is_present("verify-tls");
         let tx = tx.clone();
-        let mut tokio_runtime = Runtime::new().expect("Failed to create Tokio runtime.");
         pool.execute(move || {
-            if tokio_runtime.block_on(check_url(&url, verify_tls)).unwrap() {
+            if check_url(&url, verify_tls).unwrap() {
                 println!("{}", url);
                 if write_file {
                     tx.send(url)
@@ -102,7 +100,7 @@ fn main() {
     }
 }
 
-async fn check_url(url: &str, verify: bool) -> Result<bool> {
+fn check_url(url: &str, verify: bool) -> Result<bool> {
     let client = if !verify {
         Client::builder()
             .danger_accept_invalid_certs(true)
@@ -111,7 +109,7 @@ async fn check_url(url: &str, verify: bool) -> Result<bool> {
     } else {
         Client::builder().build().unwrap()
     };
-    let resp = client.get(url).send().await;
+    let resp = client.get(url).send();
     let r = match resp {
         Ok(r) => r,
         Err(error) => {
